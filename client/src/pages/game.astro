@@ -1,0 +1,10 @@
+---
+
+// Component Imports
+// For JSX components, all the common ways of exporting (under a namespace, specific export, default export etc) are supported!
+import App from '../components/SocketIOProvider';
+
+// Full Astro Component Syntax:
+// https://docs.astro.build/core-concepts/astro-components/
+---
+<App client:only="react"/>
