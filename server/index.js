@@ -18,7 +18,16 @@ app.get('/', (req, res) => {
 server.listen(4000, () => {
   console.log('listening on *:4000');
 });
-
 io.on('connection', (socket) => {
-    console.log('a user connected');
+  console.log('a user connected');
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+  socket.on('move', ({x,y}) => {
+    console.log({x,y})
+  });
+  socket.on('chat', (message) => {
+    console.log(message)
+    socket.broadcast.emit('chat',message)
+  });
 });

@@ -1,4 +1,4 @@
-import  { useEffect, PropsWithChildren, createContext, useContext } from 'react';
+import  { useEffect, PropsWithChildren, createContext, useContext, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 interface ServerToClientEvents{
     chat:(arg:{
@@ -29,17 +29,15 @@ type CustomSocket=Socket<ServerToClientEvents,ClientToServerEvents>
 const SocketContext = createContext<CustomSocket|null>(null)
 export function useSocketOn<T extends keyof ServerToClientEvents>(name:T,callback:ServerToClientEvents[T]){
     const socket = useContext(SocketContext)
-    socket?.on("chat",(arg)=>{
-        console.log(arg)
-    })
     useEffect(()=>{
         if(socket!==null){
             socket.on<T>(name, callback as unknown as any);
             return ()=>socket.off(name)
         }
         return ()=>{}
-    },[])
+    },[socket])
 }
+
 export function useSocketEmit<T extends keyof ClientToServerEvents>(name:T){
     const socket = useContext(SocketContext)
     if(socket){
@@ -48,6 +46,22 @@ export function useSocketEmit<T extends keyof ClientToServerEvents>(name:T){
         return (..._args:Parameters<ClientToServerEvents[T]>)=>{}
     }
 }
+
+export function useSocketConnected(){
+    const socket = useContext(SocketContext)
+    const [state,setState]=useState(socket?.connected??false);
+    useSocketOn("connect",()=>{
+        setState(true)
+    })
+    useSocketOn("disconnect",()=>{
+        setState(false)
+    })
+    useEffect(()=>{
+        setState(socket?.connected??false)
+    },[socket])
+    return state
+}
+
 export function SocketProvider({children}:PropsWithChildren<{}>){
     const socket = io("localhost:4000",{});
     return <SocketContext.Provider value={socket}>
