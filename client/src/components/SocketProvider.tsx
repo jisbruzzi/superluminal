@@ -20,13 +20,14 @@ interface ClientToServerEvents{
         datetime:number
     })=>void,
     move:(arg:{
-        direction:"N"|"E"|"S"|"W"
+        direction:"N"|"E"|"S"|"W",
+        player:number,
         datetime:number
     })=>void,
 }
 type CustomSocket=Socket<ServerToClientEvents,ClientToServerEvents>
 const SocketContext = createContext<CustomSocket|null>(null)
-export function useSocketMessage<T extends keyof ServerToClientEvents>(name:T,callback:ServerToClientEvents[T]){
+export function useSocketOn<T extends keyof ServerToClientEvents>(name:T,callback:ServerToClientEvents[T]){
     const socket = useContext(SocketContext)
     socket?.on("chat",(arg)=>{
         console.log(arg)
@@ -39,12 +40,12 @@ export function useSocketMessage<T extends keyof ServerToClientEvents>(name:T,ca
         return ()=>{}
     },[])
 }
-export function useSocketEmit<T extends keyof ClientToServerEvents>(name:T,...args:Parameters<ClientToServerEvents[T]>){
+export function useSocketEmit<T extends keyof ClientToServerEvents>(name:T){
     const socket = useContext(SocketContext)
     if(socket){
-        return ()=>socket.emit(name,...args)
+        return (...args:Parameters<ClientToServerEvents[T]>)=>socket.emit(name,...args)
     }else{
-        return ()=>{}
+        return (..._args:Parameters<ClientToServerEvents[T]>)=>{}
     }
 }
 export function SocketProvider({children}:PropsWithChildren<{}>){
